@@ -23,28 +23,186 @@
 			font-size: 18px;
 		}
 
-		#canvas {
+		#wrapper {
+			margin: 0 0 -21px;
+			padding: 1px;
+			min-height: 100%;
+			border-bottom: 21px solid transparent;
+			box-sizing: border-box;
+		}
+
+		#title {
+			background-color: #ea316e;
+			margin: 9px;
+			padding: .8em;
+			border: 1px solid black;
+			border-radius: 10px;
+			box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.3);
+			text-align: center;
+			color: #f5f5f5;
+		}
+
+		#main {
+			background-color: #b1e3fa;
+			margin: 9px;
+			padding: 15px 0;
+			border: 1px solid black;
+			border-radius: 10px;
+			box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.3);
+			text-align: center;
+		}
+
+		#game-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 100%;
+			background: transparent;
+			overflow: hidden;
+		}
+
+		#game-container:fullscreen {
+			background-color: #000;
 			width: 100vw;
 			height: 100vh;
+			margin: 0;
+			padding: 0;
+		}
+
+		#game-container:-webkit-full-screen {
+			background-color: #000;
+			width: 100%;
+			height: 100%;
+		}
+
+		canvas {
+			display: block;
+			/* image-rendering: pixelated; */
+		}
+
+		#game-container:not(:fullscreen) canvas {
+			max-width: 100%;
+			height: auto;
+		}
+
+		#fullscreen-btn {
+			margin-top: 10px;
+			padding: 10px 20px;
+			background-color: #ea316e;
+			color: white;
+			border: 1px solid black;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 16px;
+			box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.3);
+			transition: background-color 0.2s;
+		}
+
+		#fullscreen-btn:hover {
+			background-color: #ff5e94;
+		}
+
+		#fullscreen-btn:disabled {
+			background-color: #ccc;
+			color: #666;
+			cursor: not-allowed;
+			border-color: #999;
+			box-shadow: none;
+		}
+
+		#footer {
+			background-color: #b1e3fa;
+			padding-top: 3px;
+			height: 17px;
+			border-top: 1px dashed #77A;
+			color: #444;
+			font-size: 9pt;
+			text-align: center;
+			overflow-y: auto;
+		}
+
+		#footer a {
+			color: #77A;
+		}
+
+		#footer a:hover,
+		#footera:active {
+			color: #ea316e;
+		}
+
+		@media (max-width: 850px) {
+			#wrapper {
+				font-size: 80%;
+			}
+
+			#title {
+				padding: .2em;
+			}
 		}
 	</style>
 </head>
+</head>
 
 <body>
-	<center><canvas id="canvas" width="800" height="600"
-			style="max-width:100%;background:#000;vertical-align:middle"></canvas></center>
-	<script type="text/javascript">(function () {
+	<div id="wrapper">
+		<h1 id="title">めぶきちがはしるよ</h1>
+		<div id="main">
+			<div id="game-container">
+				<canvas id="canvas" width="800" height="600" style="background:#000;"></canvas>
+			</div>
+			<button id="fullscreen-btn" disabled>ゲーム起動は上の画面をクリック</button>
+		</div>
+	</div>
+	<div id="footer">Made using the <a href="https://love2d.org/" target="_blank">LÖVE Framework</a> (<a
+			href="https://raw.githubusercontent.com/love2d/love/main/license.txt" target="_blank">License</a>) &middot;
+		Packaged using <a href="https://schellingb.github.io/LoveWebBuilder/" target="_blank">LÖVE Web Builder</a></div>
 
-			window.addEventListener(
-				"keydown",
-				function (e) {
-					// space and arrow keys
-					if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
-						e.preventDefault();
-					}
-				},
-				false
-			);
+	<script type="text/javascript">
+		function updateCanvasSize() {
+			var container = document.getElementById('game-container');
+			var canvas = document.getElementById('canvas');
+			if (!canvas || !container) return;
+
+			var isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+
+			if (isFullscreen) {
+				var windowWidth = window.innerWidth;
+				var windowHeight = window.innerHeight;
+				var gameRatio = 800 / 600;
+				var windowRatio = windowWidth / windowHeight;
+				var newWidth, newHeight;
+
+				if (windowRatio > gameRatio) {
+					newHeight = windowHeight;
+					newWidth = newHeight * gameRatio;
+				} else {
+					newWidth = windowWidth;
+					newHeight = newWidth / gameRatio;
+				}
+				canvas.style.width = newWidth + 'px';
+				canvas.style.height = newHeight + 'px';
+			} else {
+				canvas.style.width = '';
+				canvas.style.height = '';
+			}
+		}
+
+		document.getElementById('fullscreen-btn').addEventListener('click', function () {
+			var container = document.getElementById('game-container');
+			if (container.requestFullscreen) container.requestFullscreen();
+			else if (container.mozRequestFullScreen) container.mozRequestFullScreen();
+			else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+			else if (container.msRequestFullscreen) container.msRequestFullscreen();
+		});
+
+		window.addEventListener('resize', updateCanvasSize);
+		document.addEventListener('fullscreenchange', updateCanvasSize);
+		document.addEventListener('webkitfullscreenchange', updateCanvasSize);
+		document.addEventListener('mozfullscreenchange', updateCanvasSize);
+		document.addEventListener('MSFullscreenChange', updateCanvasSize);
+	</script>
+
+	<script type="text/javascript">(function () {
 			var TXT =
 			{
 				PLAYBTN: 'Click here to launch the game',
@@ -74,10 +232,21 @@
 					canvas.parentNode.replaceChild(Module.canvas, canvas);
 					Txt = Msg = ctx = canvas = null;
 					Module.canvas.focus();
+
+					if (typeof updateCanvasSize === 'function') updateCanvasSize();
+
+					var btn = document.getElementById('fullscreen-btn');
+					if (btn) {
+						btn.disabled = false;
+						btn.textContent = "フルスクリーンで遊ぶ";
+					}
 				};
 				setTimeout(function () { Module.run(['/p']); }, 50);
 			};
 			var DoLoad = function () {
+				var btn = document.getElementById('fullscreen-btn');
+				if (btn) btn.textContent = "ロード中...";
+
 				Msg(TXT.LOAD);
 				var xhr = new XMLHttpRequest();
 				xhr.open('GET', 'index.js');
@@ -127,5 +296,6 @@
 			DoSetup();
 		})()</script>
 
-</html>
 </body>
+
+</html>
